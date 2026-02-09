@@ -129,7 +129,7 @@
             <p>¡Escanea QR codes para descubrir el tesoro!<br>
             Cada QR que encuentres te acercará más al premio final de <strong>Caiman53</strong>.</p>
 
-            <div class="qr-list" id="qrList">
+            <div class="qr-list">
                 <div class="qr-item" id="qr1">QR 1</div>
                 <div class="qr-item" id="qr2">QR 2</div>
                 <div class="qr-item" id="qr3">QR 3</div>
@@ -142,7 +142,7 @@
                     <li>Escanea cada uno con tu teléfono</li>
                     <li>¡Mira tu progreso crecer!</li>
                     <li>Al escanear <strong>2 de los 3 códigos</strong>, recibirás tu código único</li>
-                    <li>Presiona "Enviar" y envía tu código por WhatsApp</li>
+                    <li>Presiona "Enviar" y envía tu código por WhatsApp a Caiman53</li>
                 </ul>
             </div>
         </div>
@@ -161,7 +161,7 @@
             
             <button class="whatsapp-btn" onclick="sendWhatsApp()">📱 Enviar por WhatsApp</button>
             
-            <p>Al presionar "Enviar", serás redirigido a WhatsApp para enviar tu código a Caiman53</p>
+            <p>El mensaje se enviará directamente a Caiman53.</p>
         </div>
 
         <div class="footer">© 2026 Caiman53 - Búsqueda del Tesoro</div>
@@ -171,6 +171,7 @@
         const TOTAL_QRS = 3;
         const REQUIRED_TO_COMPLETE = 2;
         const VALID_IDS = ['qr1', 'qr2', 'qr3'];
+        const WHATSAPP_NUMBER = '54264065'; // Tu número (sin +)
 
         // Cargar estado desde localStorage
         let foundQRs = JSON.parse(localStorage.getItem('foundQRs') || '[]');
@@ -226,7 +227,8 @@
         function sendWhatsApp() {
             if (userCode) {
                 const message = `Hola, completé la Búsqueda del Tesoro de Caiman53. Mi código es: ${userCode}`;
-                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
+                // Enviar directamente al número especificado
+                window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`, '_blank');
             }
         }
 
