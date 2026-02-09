@@ -85,6 +85,11 @@ Búsqueda Del Tesoro Caimán53
             color: #777;
             font-weight: bold;
         }
+        .qr-item.found {
+            background: #d4edda;
+            color: #155724;
+            border: 2px solid #28a745;
+        }
         .instructions {
             background: #e8f4ff;
             padding: 18px;
@@ -156,19 +161,17 @@ Búsqueda Del Tesoro Caimán53
             <div class="description">
                 ¡Escanea QR codes para descubrir el tesoro!<br>
                 Cada QR que encuentres te acercará más al premio final de <strong>Caiman53</strong>.<br>
-                ¡Explora y descubre todos los códigos!
+                ¡Explora la ciudad y descubre todos los códigos!
             </div>
 
-            <div class="qr-list">
-            <div class="qr-item" id="qr1">QR 1</div>
-            <div class="qr-item" id="qr2">QR 2</div>
-            <div class="qr-item" id="qr3">QR 3</div>
+            <div class="qr-list" id="qrList">
+                <!-- Los QR se generarán dinámicamente -->
             </div>
 
             <div class="instructions">
                 <h2>🎯 Instrucciones:</h2>
                 <ul>
-                    <li>Busca <strong>2 de los 3 QR codes</strong> ocultos</li>
+                    <li>Busca los <strong>3 QR codes</strong> ocultos por la ciudad</li>
                     <li>Escanea cada uno con tu teléfono</li>
                     <li>¡Mira tu progreso crecer!</li>
                     <li>Al escanear <strong>2 de los 3 códigos</strong>, recibirás tu código único</li>
@@ -207,7 +210,8 @@ Búsqueda Del Tesoro Caimán53
         const REQUIRED_QRS = 2; // Solo se necesitan 2 de 3
         let scannedCount = 0;
         let rewardCode = '';
-        
+        const qrElements = [];
+
         // Generar código único alfanumérico
         function generateUniqueCode() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
@@ -217,18 +221,25 @@ Búsqueda Del Tesoro Caimán53
             }
             return result;
         }
-        
-        // Actualizar progreso
+
+        // Actualizar progreso visual
         function updateProgress() {
             const percentage = Math.min(100, Math.round((scannedCount / REQUIRED_QRS) * 100));
             document.getElementById('progressFill').style.width = percentage + '%';
             document.getElementById('progressText').textContent = `${percentage}% — ${scannedCount} / ${TOTAL_QRS} QR encontrados`;
-            
+
+            // Actualizar estado visual de los QR
+            for (let i = 1; i <= TOTAL_QRS; i++) {
+                if (sessionStorage.getItem(`scanned_qr_${i}`)) {
+                    qrElements[i - 1].classList.add('found');
+                }
+            }
+
             if (scannedCount >= REQUIRED_QRS) {
                 showCompletionScreen();
             }
         }
-        
+
         // Mostrar pantalla de finalización
         function showCompletionScreen() {
             if (!rewardCode) {
@@ -239,13 +250,13 @@ Búsqueda Del Tesoro Caimán53
             document.getElementById('progressScreen').style.display = 'none';
             document.getElementById('completionScreen').style.display = 'block';
         }
-        
+
         // Manejar escaneo desde URL
         function handleScanFromURL() {
             const urlParams = new URLSearchParams(window.location.search);
             const scanId = urlParams.get('id');
-            
-            if (scanId && !isNaN(scanId)) {
+
+            if (scanId && !isNaN(scanId) && scanId >= 1 && scanId <= TOTAL_QRS) {
                 const key = `scanned_qr_${scanId}`;
                 if (!sessionStorage.getItem(key)) {
                     sessionStorage.setItem(key, 'true');
@@ -254,7 +265,7 @@ Búsqueda Del Tesoro Caimán53
                 }
             }
         }
-        
+
         // Configurar botón de WhatsApp
         function setupWhatsAppButton() {
             const btn = document.getElementById('whatsappBtn');
@@ -266,9 +277,26 @@ Búsqueda Del Tesoro Caimán53
                 }
             });
         }
-        
+
+        // Crear elementos visuales de QR
+        function renderQRList() {
+            const container = document.getElementById('qrList');
+            container.innerHTML = '';
+            qrElements.length = 0;
+
+            for (let i = 1; i <= TOTAL_QRS; i++) {
+                const div = document.createElement('div');
+                div.className = 'qr-item';
+                div.textContent = `QR ${i}`;
+                container.appendChild(div);
+                qrElements.push(div);
+            }
+        }
+
         // Inicializar
         function init() {
+            renderQRList();
+
             // Recuperar estado previo
             scannedCount = 0;
             for (let i = 1; i <= TOTAL_QRS; i++) {
@@ -276,24 +304,23 @@ Búsqueda Del Tesoro Caimán53
                     scannedCount++;
                 }
             }
-            
+
             rewardCode = sessionStorage.getItem('rewardCode') || '';
-            
+
             if (scannedCount >= REQUIRED_QRS) {
                 showCompletionScreen();
             } else {
                 updateProgress();
             }
-            
+
             // Verificar si se llegó por escaneo
             handleScanFromURL();
             setupWhatsAppButton();
         }
-        
+
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
-
 ```
 
