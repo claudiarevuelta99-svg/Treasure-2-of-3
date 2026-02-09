@@ -1,9 +1,8 @@
-Búsqueda Del Tesoro Caimán53
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>🗺️ Búsqueda del Tesoro - Caiman53</title>
     <style>
         body {
@@ -22,21 +21,12 @@ Búsqueda Del Tesoro Caimán53
             border-radius: 16px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
-        .logo {
+        .logo img {
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: #e0e0e0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            overflow: hidden;
-        }
-        .logo img {
-            width: 100%;
-            height: 100%;
             object-fit: cover;
+            margin-bottom: 15px;
         }
         h1 {
             color: #2c3e50;
@@ -60,11 +50,6 @@ Búsqueda Del Tesoro Caimán53
             font-weight: bold;
             margin: 10px 0;
             color: #2c3e50;
-        }
-        .description {
-            margin: 20px 0;
-            line-height: 1.5;
-            color: #555;
         }
         .qr-list {
             display: flex;
@@ -97,13 +82,7 @@ Búsqueda Del Tesoro Caimán53
             margin-top: 25px;
             text-align: left;
         }
-        .instructions h2 {
-            margin-top: 0;
-            color: #2980b9;
-        }
-        .completion-screen {
-            display: none;
-        }
+        .completion-screen { display: none; }
         .reward-code {
             font-size: 26px;
             font-weight: bold;
@@ -125,22 +104,11 @@ Búsqueda Del Tesoro Caimán53
             cursor: pointer;
             margin-top: 15px;
             font-weight: bold;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
         }
         .footer {
             margin-top: 30px;
             color: #888;
             font-size: 14px;
-        }
-        @media (max-width: 500px) {
-            .container {
-                padding: 20px 15px;
-            }
-            h1 {
-                font-size: 24px;
-            }
         }
     </style>
 </head>
@@ -158,14 +126,13 @@ Búsqueda Del Tesoro Caimán53
             </div>
             <div class="progress-text" id="progressText">0% — 0 / 3 QR encontrados</div>
 
-            <div class="description">
-                ¡Escanea QR codes para descubrir el tesoro!<br>
-                Cada QR que encuentres te acercará más al premio final de <strong>Caiman53</strong>.<br>
-                ¡Explora la ciudad y descubre todos los códigos!
-            </div>
+            <p>¡Escanea QR codes para descubrir el tesoro!<br>
+            Cada QR que encuentres te acercará más al premio final de <strong>Caiman53</strong>.</p>
 
             <div class="qr-list" id="qrList">
-                <!-- Los QR se generarán dinámicamente -->
+                <div class="qr-item" id="qr1">QR 1</div>
+                <div class="qr-item" id="qr2">QR 2</div>
+                <div class="qr-item" id="qr3">QR 3</div>
             </div>
 
             <div class="instructions">
@@ -192,27 +159,61 @@ Búsqueda Del Tesoro Caimán53
             
             <p>⚠️ ¡Guarda esta pantalla! El código es válido por 7 días.</p>
             
-            <button class="whatsapp-btn" id="whatsappBtn">
-                📱 Enviar por WhatsApp
-            </button>
+            <button class="whatsapp-btn" onclick="sendWhatsApp()">📱 Enviar por WhatsApp</button>
             
             <p>Al presionar "Enviar", serás redirigido a WhatsApp para enviar tu código a Caiman53</p>
         </div>
 
-        <div class="footer">
-            © 2026 Caiman53 - Búsqueda del Tesoro
-        </div>
+        <div class="footer">© 2026 Caiman53 - Búsqueda del Tesoro</div>
     </div>
 
     <script>
-        // Configuración
         const TOTAL_QRS = 3;
-        const REQUIRED_QRS = 2; // Solo se necesitan 2 de 3
-        let scannedCount = 0;
-        let rewardCode = '';
-        const qrElements = [];
+        const REQUIRED_TO_COMPLETE = 2;
+        const VALID_IDS = ['qr1', 'qr2', 'qr3'];
 
-        // Generar código único alfanumérico
+        // Cargar estado desde localStorage
+        let foundQRs = JSON.parse(localStorage.getItem('foundQRs') || '[]');
+        let userCode = localStorage.getItem('userCode') || '';
+
+        // Leer parámetro de URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const qrId = urlParams.get('id');
+
+        // Si se escaneó un QR válido y no estaba marcado, añadirlo
+        if (qrId && VALID_IDS.includes(qrId) && !foundQRs.includes(qrId)) {
+            foundQRs.push(qrId);
+            localStorage.setItem('foundQRs', JSON.stringify(foundQRs));
+        }
+
+        // Actualizar interfaz
+        function updateUI() {
+            const progressPercent = Math.min(100, Math.round((foundQRs.length / REQUIRED_TO_COMPLETE) * 100));
+            document.getElementById('progressFill').style.width = progressPercent + '%';
+            document.getElementById('progressText').textContent = `${progressPercent}% — ${foundQRs.length} / ${TOTAL_QRS} QR encontrados`;
+
+            // Marcar visualmente los QR encontrados
+            VALID_IDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (foundQRs.includes(id)) {
+                    el.classList.add('found');
+                } else {
+                    el.classList.remove('found');
+                }
+            });
+
+            // Mostrar pantalla de finalización si ya se tienen los suficientes
+            if (foundQRs.length >= REQUIRED_TO_COMPLETE) {
+                if (!userCode) {
+                    userCode = generateUniqueCode();
+                    localStorage.setItem('userCode', userCode);
+                }
+                document.getElementById('rewardCode').textContent = userCode;
+                document.getElementById('progressScreen').style.display = 'none';
+                document.getElementById('completionScreen').style.display = 'block';
+            }
+        }
+
         function generateUniqueCode() {
             const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
             let result = '';
@@ -222,105 +223,15 @@ Búsqueda Del Tesoro Caimán53
             return result;
         }
 
-        // Actualizar progreso visual
-        function updateProgress() {
-            const percentage = Math.min(100, Math.round((scannedCount / REQUIRED_QRS) * 100));
-            document.getElementById('progressFill').style.width = percentage + '%';
-            document.getElementById('progressText').textContent = `${percentage}% — ${scannedCount} / ${TOTAL_QRS} QR encontrados`;
-
-            // Actualizar estado visual de los QR
-            for (let i = 1; i <= TOTAL_QRS; i++) {
-                if (sessionStorage.getItem(`scanned_qr_${i}`)) {
-                    qrElements[i - 1].classList.add('found');
-                }
-            }
-
-            if (scannedCount >= REQUIRED_QRS) {
-                showCompletionScreen();
+        function sendWhatsApp() {
+            if (userCode) {
+                const message = `Hola, completé la Búsqueda del Tesoro de Caiman53. Mi código es: ${userCode}`;
+                window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank');
             }
         }
 
-        // Mostrar pantalla de finalización
-        function showCompletionScreen() {
-            if (!rewardCode) {
-                rewardCode = generateUniqueCode();
-                sessionStorage.setItem('rewardCode', rewardCode);
-            }
-            document.getElementById('rewardCode').textContent = rewardCode;
-            document.getElementById('progressScreen').style.display = 'none';
-            document.getElementById('completionScreen').style.display = 'block';
-        }
-
-        // Manejar escaneo desde URL
-        function handleScanFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const scanId = urlParams.get('id');
-
-            if (scanId && !isNaN(scanId) && scanId >= 1 && scanId <= TOTAL_QRS) {
-                const key = `scanned_qr_${scanId}`;
-                if (!sessionStorage.getItem(key)) {
-                    sessionStorage.setItem(key, 'true');
-                    scannedCount++;
-                    updateProgress();
-                }
-            }
-        }
-
-        // Configurar botón de WhatsApp
-        function setupWhatsAppButton() {
-            const btn = document.getElementById('whatsappBtn');
-            btn.addEventListener('click', () => {
-                if (rewardCode) {
-                    const message = `Hola, completé la Búsqueda del Tesoro de Caiman53. Mi código es: ${rewardCode}`;
-                    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-                    window.open(whatsappUrl, '_blank');
-                }
-            });
-        }
-
-        // Crear elementos visuales de QR
-        function renderQRList() {
-            const container = document.getElementById('qrList');
-            container.innerHTML = '';
-            qrElements.length = 0;
-
-            for (let i = 1; i <= TOTAL_QRS; i++) {
-                const div = document.createElement('div');
-                div.className = 'qr-item';
-                div.textContent = `QR ${i}`;
-                container.appendChild(div);
-                qrElements.push(div);
-            }
-        }
-
-        // Inicializar
-        function init() {
-            renderQRList();
-
-            // Recuperar estado previo
-            scannedCount = 0;
-            for (let i = 1; i <= TOTAL_QRS; i++) {
-                if (sessionStorage.getItem(`scanned_qr_${i}`)) {
-                    scannedCount++;
-                }
-            }
-
-            rewardCode = sessionStorage.getItem('rewardCode') || '';
-
-            if (scannedCount >= REQUIRED_QRS) {
-                showCompletionScreen();
-            } else {
-                updateProgress();
-            }
-
-            // Verificar si se llegó por escaneo
-            handleScanFromURL();
-            setupWhatsAppButton();
-        }
-
-        document.addEventListener('DOMContentLoaded', init);
+        // Iniciar
+        updateUI();
     </script>
 </body>
 </html>
-```
-
